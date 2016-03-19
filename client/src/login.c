@@ -1,5 +1,6 @@
 #include "login.h"
 
+// This function sends login information through the socket
 int send_login(FILE * socket){
 
   // Getting the username
@@ -28,11 +29,37 @@ int send_login(FILE * socket){
 
   // Writing to the socket
   fwrite(username, 1 , strlen(username), socket);
-  fprintf(socket, "\r\n");
+  fprintf(socket, " ");
   fwrite(hash, 1 , sizeof(hash), socket);
-  fprintf(socket, "\r\n\r\n");
+  fprintf(socket, "\r\n");
 
   // Reading response
 
   return 1;
 }
+
+// Function opens a socket and connects it to the server
+int open_connection(char * servIP, char * servPort){
+
+  int sock;
+  if((sock = socket(PF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0){
+    die_verbosely("socket() failed");
+  }
+
+  struct sockaddr_in servAddr;
+  unsigned short port = atoi(servPort);
+
+  // Filling in the sockaddr structure
+  memset(&servAddr, 0, sizeof(servAddr));       // Initiate all bytes to 0
+  servAddr.sin_family = AF_INET;                // Internet adress famly
+  servAddr.sin_addr.s_addr = inet_addr(servIP); // IP adress
+  servAddr.sin_port = htons(port);              // Port
+
+  // Connect the socket to the server
+  if (connect(sock, (struct sockaddr *) &servAddr, sizeof(servAddr)) < 0){
+    die_verbosely("connect() failed");
+  }
+
+  return sock;
+}
+
