@@ -48,18 +48,19 @@ void initialize_database(char * source_file_name, char * db_name, UsersDB * db){
 
     // Filling the Rec
     word = strtok(line, " ");   
-    db->records[i].user_id = i;
+    db->records[i].user_id = i + 1;
     strcpy(db->records[i].login, word); // Weak code.
     word = strtok(NULL, "\0");
     strcpy(db->records[i].password, word); // Weak code.
 
     memset(line, 0, PASS_USRN_LENGTH);
-    memset(word, 0, PASS_USRN_LENGTH);
   }
 
+  // read_usersDB(db, stderr);
+
+  // Write the entries into the db file
   fwrite(db, N_USERS, sizeof(UsersDBRec), db_file);
 
   fclose(db_file);
   fclose(source);
-  
 }

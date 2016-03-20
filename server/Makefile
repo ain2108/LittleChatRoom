@@ -6,7 +6,7 @@ LDFLAGS=
 SOURCES=$(wildcard src/*.c)
 OBJECTS=$(SOURCES:.c=.o)
 TEMP=$(OBJECTS:src/%.o=%.o)
-TARGET=head
+TARGET=Server
 
 all: $(TARGET)
 	mkdir -p object_files
