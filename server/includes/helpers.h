@@ -8,6 +8,14 @@
 #include <string.h>     /* for memset() */
 #include <unistd.h>     /* for close() */
 
+#include <stdio.h>      /* for printf() and fprintf() */
+#include <sys/socket.h> /* for socket(), bind(), and connect() */
+#include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
+
+
+
+#include <signal.h>     /* for signal() */
+
 #define READ_BUFFER 128
 #define READ_BUFFER_SIZE 2048
 #define WRITE_BUFFER_SIZE 2048

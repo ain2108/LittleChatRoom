@@ -13,18 +13,19 @@ int send_login(FILE * socket){
   // Getting the password
   char * password;
   password = getpass("Password: ");
-  // printf("Your password: %s, length: %d\nUsername length: %d",
-  // 	 password, strlen(password), strlen(username));
+  
+   printf("Your password: %s, length: %d\nUsername length: %d",
+   	 password, strlen(password), strlen(username));
 
   // Producing a hash
   unsigned char hash_bin[SHA_DIGEST_LENGTH];
-  SHA1((const unsigned char *)password, sizeof(password), hash_bin);
+  SHA1((const unsigned char *)password, strlen(password), hash_bin);
   // free(password);
   // Convert hash to hex
-  char hash[41]; 
+  char hash[40]; 
   int i;
   for(i = 0; i < 20; i++){
-    snprintf(hash + (i * 3) , 4, "%02x", hash_bin[i]);
+    snprintf(hash + (i * 2) , 3, "%02x", hash_bin[i]);
   }
 
   // Writing to the socket
