@@ -2,23 +2,28 @@
 
 void handle_client(int sock){
 
-  // Creating FILE pointers for convenience
-  FILE * sockf_write = fdopen(sock, "w");
-  FILE * sockf_read = fdopen(sock, "r");
-  char line[2048];
-  memset(line, 0, 2048);
+  char line[READ_BUFFER_SIZE];
+  memset(line, 0, READ_BUFFER_SIZE);
   
+  fprintf(stderr, "Somebody is here:)\n");
+
+
   // Login
-  readLine(sockf_read, line, 2048 - 1);
-  fprintf(sockf_write, "OK\n");
-  fprintf(sockf_write, "Welcome user!\n");
+  recv(sock, line, READ_BUFFER_SIZE - 1, 0);
+  fprintf(stderr, "Client sent: %s\n", line);
+  send(sock, "OK\n", 3, 0);
+  send(sock, "Welcome user!\n", 20, 0);
+
+  fprintf(stderr, "Stuff was written, but client is not reading.\n");
+
 
   // Echo
   int charsRead = 0;
-  while( (charsRead = readLine(sockf_read, line, 2048 - 1)) >= 0){
-    fprintf(sockf_write, "%s\n", line);
+  memset(line, 0, READ_BUFFER_SIZE);
+  while( (charsRead = recv(sock, line, READ_BUFFER_SIZE - 1, 0)) > 0){
+    send(sock, line, READ_BUFFER_SIZE, 0);
+    memset(line, 0, READ_BUFFER_SIZE);
   }
-
 
   close(sock);
   return;
