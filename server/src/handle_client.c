@@ -11,8 +11,10 @@ void handle_client(int sock){
   // Login
   sreadLine(sock, line, READ_BUFFER_SIZE - 1);
   fprintf(stderr, "Client sent: %s\n", line);
-  send(sock, "OK\n", 3, 0);
-  send(sock, "Welcome user!\n", 20, 0);
+  send(sock, "OK", 2, 0);
+  send(sock, "\n", 1, 0);
+  send(sock, "Welcome user!", 13, 0);
+  send(sock, "\n", 1, 0);
 
   fprintf(stderr, "Stuff was written, but client is not reading.\n");
 

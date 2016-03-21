@@ -28,12 +28,11 @@ int main(int argc, char ** argv){
     }
 
     /**********************READER PROCESS******************************/
-    if(pid_reader == 0){
+    if(pid_reader != 0){
       
       // Read a line, print it to stdout. Repeat until EOF (socket closes
       while(sreadLine(sock, read_buffer, READ_BUFFER_SIZE - 1)){
-        fprintf(stderr,"Server: ");
-	fprintf(stderr, "%s\n", read_buffer);
+	fprintf(stderr, "Server: %s\n", read_buffer);
       }
       
       // Cleaning up
@@ -47,14 +46,11 @@ int main(int argc, char ** argv){
 
     // Read a line from stdin
     size_t size = WRITE_BUFFER_SIZE - 1;
-    fprintf(stdout,"Command: "); 
-    getline(&write_buffer, &size, stdin);
-    while(1){
+    memset(write_buffer, 0, WRITE_BUFFER_SIZE);
+    while(getline(&write_buffer, &size, stdin) ){
       send(sock, write_buffer, strlen(write_buffer), 0);
-      send(sock, "\n", 1, 0); // Complete transmission
       memset(write_buffer, 0, WRITE_BUFFER_SIZE);
-      fprintf(stdout,"Command: ");
-      getline(&write_buffer, &size, stdin);
+      // fprintf(stdout,"Command: ");
     }
 
     // Cleaning up
