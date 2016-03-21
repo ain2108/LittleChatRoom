@@ -22,8 +22,8 @@ void handle_client(int sock){
   memset(line, 0, READ_BUFFER_SIZE);
   while((charsRead = sreadLine(sock, line, READ_BUFFER_SIZE - 1)) > 0){
     fprintf(stderr, "Client sent: %s\n", line);
-    send(sock, line, READ_BUFFER_SIZE, 0);
-    send(sock, "\r\n", 1, 0);
+    send(sock, line, strlen(line), 0);
+    send(sock, "\n", 1, 0);
     memset(line, 0, READ_BUFFER_SIZE);
   }
 

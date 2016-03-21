@@ -37,7 +37,7 @@ int sreadLine(int socket, char * buffer, size_t buffSize){
      else if(bytERead == -1) return -1; // Error
      
      if( (*buffer) == '\n'){
-       buffer[bytesRead] = '\0';
+       *buffer = '\0';
        return bytesRead + 1;  
      }
      buffer++;
