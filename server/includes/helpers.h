@@ -12,8 +12,7 @@
 #include <sys/socket.h> /* for socket(), bind(), and connect() */
 #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
 
-
-
+#include <time.h>
 #include <signal.h>     /* for signal() */
 
 #define READ_BUFFER 128
@@ -29,6 +28,9 @@
 
 #define USERS_FILE_NAME "user_pass.txt"
 #define DATABASE_NAME "UsersRecDB"
+#define IP_BAN_DB_NAME "bandb"
+#define MAX_IP_DB_REC_N 128
+#define MAX_FAILS 3
 
 typedef struct UsersDBRec{
   int user_id;

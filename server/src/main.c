@@ -41,7 +41,7 @@ int main(int argc, char ** argv){
     /*vvvvvvv THE HANDLER PROCESS BLOW vvvvvvv*/
     if (pid_handler == 0){
       close(listenSock);
-      handle_client(acceptSock);
+      handle_client(acceptSock, inet_ntoa(clntAddr.sin_addr));
       exit(0);
     }
     /*^^^^^^^^^^^^^^ HANDLER ENDS ^^^^^^^^^^^^*/
