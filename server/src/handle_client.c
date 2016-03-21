@@ -9,12 +9,16 @@ void handle_client(int sock){
 
 
   // Login
+  char smallBuff[64];
+  memset(smallBuff, 0, 64);
   sreadLine(sock, line, READ_BUFFER_SIZE - 1);
   fprintf(stderr, "Client sent: %s\n", line);
-  send(sock, "OK", 2, 0);
-  send(sock, "\n", 1, 0);
-  send(sock, "Welcome user!", 13, 0);
-  send(sock, "\n", 1, 0);
+  sprintf(smallBuff, "OK\nWelcome user!\n");
+  send(sock, smallBuff, strlen(smallBuff), 0);
+  // send(sock, "OK", 2, 0);
+  // send(sock, "\n", 1, 0);
+  // send(sock, "Welcome user!", 13, 0);
+  // send(sock, "\n", 1, 0);
 
   fprintf(stderr, "Stuff was written, but client is not reading.\n");
 

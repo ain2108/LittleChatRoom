@@ -1,5 +1,7 @@
 #include "login.h"
 
+#define HASH_IN_HEX 40
+
 // This function sends login information through the socket
 int send_login(int socket){
 
@@ -22,7 +24,7 @@ int send_login(int socket){
   SHA1((const unsigned char *)password, strlen(password), hash_bin);
 
   // Convert hash to hex
-  char hash[40]; 
+  char hash[HASH_IN_HEX]; 
   int i;
   for(i = 0; i < 20; i++){
     snprintf(hash + (i * 2) , 3, "%02x", hash_bin[i]);
@@ -31,8 +33,8 @@ int send_login(int socket){
   // Writing to the socket
   send(socket, username, strlen(username), 0);
   send(socket, " ", 1, 0);
-  send(socket, hash, sizeof(hash), 0);
-  send(socket, "\n", 2, 0);
+  send(socket, hash, HASH_IN_HEX, 0);
+  send(socket, "\n", 1, 0);
 
   return 1;
 }

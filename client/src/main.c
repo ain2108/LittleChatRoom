@@ -28,8 +28,12 @@ int main(int argc, char ** argv){
     }
 
     /**********************READER PROCESS******************************/
-    if(pid_reader != 0){
+    if(pid_reader == 0){
       
+      // To prevent the child stdin from interfering with parent
+      int file = open("/dev/null", O_RDONLY);
+      dup2(0, file);     
+ 
       // Read a line, print it to stdout. Repeat until EOF (socket closes
       while(sreadLine(sock, read_buffer, READ_BUFFER_SIZE - 1)){
 	fprintf(stderr, "Server: %s\n", read_buffer);
@@ -45,9 +49,12 @@ int main(int argc, char ** argv){
     /**********************CONTROLLER PROCESS*************************/
 
     // Read a line from stdin
+    
     size_t size = WRITE_BUFFER_SIZE - 1;
     memset(write_buffer, 0, WRITE_BUFFER_SIZE);
     while(getline(&write_buffer, &size, stdin) ){
+      // fprintf(stderr, "Command: %s Length: %d", 
+      //     write_buffer, (int) strlen(write_buffer));
       send(sock, write_buffer, strlen(write_buffer), 0);
       memset(write_buffer, 0, WRITE_BUFFER_SIZE);
       // fprintf(stdout,"Command: ");

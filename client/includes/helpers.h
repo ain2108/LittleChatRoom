@@ -8,6 +8,10 @@
 #include <string.h>     /* for memset() */
 #include <unistd.h>     /* for close() */
 
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
 #include "login.h"
 #include "read_write.h"
 
