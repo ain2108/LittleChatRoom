@@ -40,7 +40,7 @@ void update_IPRec_in_dbfile(IP_DBRec * record, int offset){
   FILE * ip_db = fopen(IP_BAN_DB_NAME, "wb");
   fseek(ip_db, offset, SEEK_SET);
   fwrite(record, sizeof(IP_DBRec), 1, ip_db);
-  fclose(ip_db);
+   fclose(ip_db);
   return;
 }
 
@@ -64,11 +64,8 @@ int check_validity(int socket, UsersDB * db){
   strcpy(password, word);
    
   // Check if match occurs
-  if(match_pass_user(username, password, db))
-    return 1;
-  else{
-    return 0;
-  }
+  return match_pass_user(username, password, db);
+
 }
 
 // Tries to match username and password provided by the user with db
@@ -83,15 +80,22 @@ int match_pass_user(char * username, char * password, UsersDB * db){
       i++;
       continue;
     }
-    return 1;
+    return i;
   }
-  return 0;
+  return -1;
 }
 
 // Authenticates the user. 
 int authenticate(int sock, char * ip_address){
- 
-  int BLOCK_TIME = 180; // FETCH THE ENVIROMENT VAR
+
+  // Extracting the enviroment variable
+  int BLOCK_TIME;
+  const char * env_var = getenv("BLOCK_TIME");
+  if(env_var == NULL)
+    BLOCK_TIME = 60; // In case was not set
+  else
+    BLOCK_TIME = atoi(env_var);
+  
   time_t time_sec;
   time(&time_sec);
 
@@ -138,12 +142,13 @@ int authenticate(int sock, char * ip_address){
 
   // Attempt validation of user. Check for number of tries. 
   int attempts = 0;
+  int position_in_users_db;
   while(attempts < MAX_FAILS){
-    if(!check_validity(sock, db)){
+    if((position_in_users_db = check_validity(sock, db)) == -1){
       send(sock, "NO\n", 3, 0);
       attempts++; 
     }else{
-      return 1;
+      return position_in_users_db;
     }
   }
   time(&time_sec);
@@ -152,6 +157,46 @@ int authenticate(int sock, char * ip_address){
 	  ip_address, ip_db_array[position].ban_time);
   update_IPRec_in_dbfile(ip_db_array + position, offset);
   close(sock);
-  return 0;
+  return -1;
 
 }
+
+/***********************************************************/
+
+/************ USERS DATABASE MANAGMENT *********************/
+void load_db_from_file(FILE * db_file, UsersDB * db){
+  fread(db, 1, sizeof(UsersDBRec) * N_USERS, db_file);
+  return;
+}
+
+// Read a UsersDBRec from databs
+void read_UDBRec_from_file(UsersDBRec * record, int offset){
+
+  FILE * users_db = fopen(DATABASE_NAME, "rb");
+  fseek(users_db, offset, SEEK_SET);
+  fread(record, sizeof(UsersDBRec), 1, users_db);
+  fclose(users_db);
+  return;
+}
+
+// Write a UsersDBRec from databs
+void write_UDBRec_from_file(UsersDBRec * record, int offset){
+  FILE * users_db = fopen(DATABASE_NAME, "wb");
+  fseek(users_db, offset, SEEK_SET);
+  fwrite(record, sizeof(UsersDBRec), 1, users_db);
+  fclose(users_db);
+  return;
+}
+
+void fillin_UsersDBRec(UsersDBRec * record, char * ip_address){
+
+  time_t time_sec;
+  time(&time_sec);
+  record->logged_in = 1;
+  record->last_login_time = time_sec;
+  strcpy(record->ip, ip_address);
+  record->last_logout_time = 0;
+  return;
+}
+
+ 

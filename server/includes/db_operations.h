@@ -3,7 +3,7 @@
 
 #include "helpers.h"
 
-void load_db_from_file(FILE * db_file, UsersDB * db);
+
 
 
 

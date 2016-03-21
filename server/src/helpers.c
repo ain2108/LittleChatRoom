@@ -17,10 +17,16 @@ int readLine(FILE * sockf, char * buffer, size_t buffSize){
 void read_usersDB(UsersDB * db, FILE * stream){
 int i = 0;
 for(i = 0; i < N_USERS; i++){
-  fprintf(stream, "ID: %d\nUsername: %s\nPassword: %s\n",
+  fprintf(stream, "ID: %d\nUsername: %s\nPassword: %s\n"
+	  "Logged in: %d\nLast login: %d\nLast logout: %d\n"
+	  "IP: %s",
 	  db->records[i].user_id,
 	  db->records[i].login,
-	  db->records[i].password);
+	  db->records[i].password,
+	  db->records[i].logged_in,
+	  db->records[i].last_login_time,
+	  db->records[i].last_logout_time,
+	  db->records[i].ip);
  }
 }
 

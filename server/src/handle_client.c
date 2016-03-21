@@ -6,16 +6,29 @@ void handle_client(int sock, char * ip_address){
   fprintf(stderr, "\n==============================================\n");
   
   // Authenticate the user
-  if(!authenticate(sock, ip_address))
+  int position;
+  if((position = authenticate(sock, ip_address)) == -1)
     return;
+  fprintf(stderr, "%s passed authentication\n", ip_address);
 
-  fprintf(stderr, "Client passed authentication\n");
   // Notify the user of success
-  char smallBuff[64];
-  memset(smallBuff, 0, 64);
-  sprintf(smallBuff, "OK\nWelcome user!\n");
-  send(sock, smallBuff, strlen(smallBuff), 0);
+  send_to_client(sock, "OK\n");
 
+  // Acquire position of username in UsersDB
+  int offset = position * sizeof(UsersDBRec);
+  UsersDBRec users_rec;
+  read_UDBRec_from_file(&users_rec, offset);
+  fillin_UsersDBRec(&users_rec, ip_address);
+  write_UDBRec_from_file(&users_rec, offset);
+
+  // Quickly check if everything is working as wanted
+  UsersDB users_db;
+  FILE * users_db_file = fopen(DATABASE_NAME, "rb");
+  load_db_from_file(users_db_file, &users_db);
+  read_usersDB(&users_db, stderr);  
+  // Ready to deal with the service
+
+  
   // Echo
   fprintf(stderr, "Echo service ready to start\n");
   int charsRead = 0;
@@ -30,6 +43,15 @@ void handle_client(int sock, char * ip_address){
 
   fprintf(stderr, "Closing connection\n");
   close(sock);
+  return;
+}
+
+// Little function that sends a message to the client
+void send_to_client(int sock, char * message){
+  char buffer[WRITE_BUFFER_SIZE];
+  memset(buffer, 0, WRITE_BUFFER_SIZE);
+  sprintf(buffer, message);
+  send(sock, buffer, strlen(buffer), 0);
   return;
 }
 

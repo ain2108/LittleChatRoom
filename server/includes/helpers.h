@@ -36,9 +36,8 @@ typedef struct UsersDBRec{
   int user_id;
   char login[PASSWORD_LIMIT];
   char password[USERNAME_LIMIT];
-  int banned;
   int logged_in;
-  long last_login_attempt_time;
+  long last_login_time;
   long last_logout_time;
   char ip[IP_LENGTH];
 
