@@ -25,6 +25,9 @@ int main(int argc, char ** argv){
   UsersDB * db = (UsersDB *) malloc(sizeof(UsersDBRec) * N_USERS);
   memset(db, 0, sizeof(UsersDB));
   initialize_database(USERS_FILE_NAME, DATABASE_NAME, db);
+  // Need to initialize the databse of IP adresses
+  FILE * ip_db = fopen(IP_BAN_DB_NAME, "wb");
+  fclose(ip_db);
 
   // Infinite loop accepting connections
   for(;;){

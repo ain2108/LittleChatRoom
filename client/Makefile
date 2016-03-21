@@ -6,7 +6,7 @@ LDFLAGS= -lcrypto
 SOURCES=$(wildcard src/*.c)
 OBJECTS=$(SOURCES:.c=.o)
 TEMP=$(OBJECTS:src/%.o=%.o)
-TARGET=test
+TARGET=Client
 
 all: $(TARGET)
 	mkdir -p object_files

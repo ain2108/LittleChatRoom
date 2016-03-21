@@ -49,21 +49,16 @@ int main(int argc, char ** argv){
     /**********************CONTROLLER PROCESS*************************/
 
     // Read a line from stdin
-    
     size_t size = WRITE_BUFFER_SIZE - 1;
     memset(write_buffer, 0, WRITE_BUFFER_SIZE);
     while(getline(&write_buffer, &size, stdin) ){
-      // fprintf(stderr, "Command: %s Length: %d", 
-      //     write_buffer, (int) strlen(write_buffer));
       send(sock, write_buffer, strlen(write_buffer), 0);
       memset(write_buffer, 0, WRITE_BUFFER_SIZE);
-      // fprintf(stdout,"Command: ");
     }
 
     // Cleaning up
     free(read_buffer);
     free(write_buffer);
-
     return 0;
     /********************CONTROLLER PROCESS ENDS**********************/
   }

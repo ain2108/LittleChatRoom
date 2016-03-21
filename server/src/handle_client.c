@@ -8,6 +8,7 @@ void handle_client(int sock, char * ip_address){
   if(!authenticate(sock, ip_address))
     return;
 
+  fprintf(stderr, "Client passed authentication\n");
   // Notify the user of success
   char smallBuff[64];
   memset(smallBuff, 0, 64);
@@ -15,6 +16,7 @@ void handle_client(int sock, char * ip_address){
   send(sock, smallBuff, strlen(smallBuff), 0);
 
   // Echo
+  fprintf(stderr, "Echo service ready to start\n");
   int charsRead = 0;
   char * line = (char *) malloc(sizeof(char) * READ_BUFFER_SIZE);
   memset(line, 0, READ_BUFFER_SIZE);
@@ -78,31 +80,39 @@ void update_IPRec_in_dbfile(IP_DBRec * record, int offset){
 int check_validity(int socket, UsersDB * db){
 
   // Some buffers
-  char line[PASS_USRN_LENGTH];
-  char password[PASSWORD_LIMIT];
-  char username[USERNAME_LIMIT];
-  memset(line, 0, PASS_USRN_LENGTH);
-  memset(password, 0, PASSWORD_LIMIT);
-  memset(username, 0, USERNAME_LIMIT);
+  char line[1024];
+  char password[1024];
+  char username[1024];
+  memset(line, 0, 1024);
+  memset(password, 0, 1024);
+  memset(username, 0, 1024);
   char * word;
+  fprintf(stderr, "Checking validity...\n");
   
   // Need to extract username and password from the line
   sreadLine(socket, line, PASS_USRN_LENGTH - 1);
+  fprintf(stderr, "Line: %s\n", line);
   word = strtok(line, " ");
   strcpy(username, word);
   word = strtok(NULL, "\0");
   strcpy(password, word);
 
+  fprintf(stderr, "Tokenized succesfully...\nusr: %s, pass: %s\n",
+          username, password);
   if(match_pass_user(username, password, db))
     return 1;
-  else
+  else{
+    fprintf(stderr, "Returning 0\n");
     return 0;
+  }
 }
 
 int match_pass_user(char * username, char * password, UsersDB * db){
   int i = 0;
+  fprintf(stderr, "Matching...\n");
   while(i < N_USERS){
     if(strcmp(username, db->records[i].login)){
+      fprintf(stderr, "%d, No match for username...\n", i);
       i++;
       continue;
     }
@@ -112,31 +122,36 @@ int match_pass_user(char * username, char * password, UsersDB * db){
     }
     return 1;
   }
+  fprintf(stderr, "No match found. Returning...\n");
   return 0;
 }
 
 int authenticate(int sock, char * ip_address){
-
-  
+ 
   int BLOCK_TIME = 60; // FETCH THE ENVIROMENT VAR
   time_t time_sec;
   time(&time_sec);
+
+  fprintf(stderr, "1.Connection attempted by %s\n", ip_address);
   
   // Assume ip_db was created in main.
   // Check the ip against database of IP adresses.
   IP_DBRec * ip_db_array
     = (IP_DBRec *) malloc(sizeof(IP_DBRec) * MAX_IP_DB_REC_N);
+  fprintf(stderr, "malloc() did NOT fail:)\n");
   load_ip_db( (char *) ip_db_array); // db loaded
   int position;
+  fprintf(stderr, "ip database loaded succesfullu\n");
   // If ip not found in db, create a new record, write it to db.
   if((position = find_position_in_IPDB(ip_db_array, ip_address)) == -1){
     create_IP_DBRec(ip_address);
+    fprintf(stderr, "IP records created and recorded\n");
     load_ip_db( (char *) ip_db_array);
     position = find_position_in_IPDB(ip_db_array, ip_address);
   }
 
   int offset = position * sizeof(IP_DBRec);
-
+  fprintf(stderr, "2.Connection attempted by %s\n", ip_address);
   // Check if user is still banned.
   if((time_sec - ip_db_array[position].ban_time) < BLOCK_TIME){
     fprintf(stdout, "Connection attempted by %s. Still banned\n",
@@ -147,19 +162,24 @@ int authenticate(int sock, char * ip_address){
   }
   // Reset ban time
   ip_db_array[position].ban_time = 0;
+  fprintf(stderr, "ban_time was reset normally\n");
 
   // Load the database of passwords and usernames
   UsersDB * db = (UsersDB *) malloc(sizeof(UsersDBRec) * N_USERS);
   memset(db, 0, sizeof(UsersDB));
-  FILE * db_file = fopen(USERS_FILE_NAME, "rb");
+  FILE * db_file = fopen(DATABASE_NAME, "rb");
   fread(db, sizeof(UsersDBRec), N_USERS, db_file);
-  
+  fprintf(stderr, "users database read succesfully\n"); 
   int attempts = 0;
   while(attempts < MAX_FAILS){
-    if(!check_validity(sock, db))
+    fprintf(stderr, "Attempt: %d\n", attempts);
+    if(!check_validity(sock, db)){
+      fprintf(stderr, "Incrementing attempts...\n");
+      send(sock, "NO\n", 3, 0);
       attempts++; 
-    else
+    }else{
       return 1;
+    }
   }
   time(&time_sec);
   ip_db_array[position].ban_time = time_sec;
