@@ -50,6 +50,7 @@ typedef struct UsersDB{
 void die_verbosely(char * message);
 int readLine(FILE * sockf, char * buffer, size_t buffSize);
 void read_usersDB(UsersDB * db, FILE * stream);
+int sreadLine(int socket, char * buffer, size_t buffSize);
 
 #include "setup.h"
 	  

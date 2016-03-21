@@ -38,3 +38,24 @@ int readLine(FILE * sockf, char * buffer, size_t buffSize){
   buffer[charRead - 1] = '\0'; // Getting rid of '\n'
   return charRead - 1; // CARE HERE
 }
+
+// Reads a line into a buffer from socket. NULL terminates it.
+int sreadLine(int socket, char * buffer, size_t buffSize){
+
+   char character[1];
+   int bytesRead = 0;
+   int bytERead = 0;
+   while(bytesRead < buffSize){
+
+     if( (bytERead = recv(socket, character, 1, 0)) == 0) return 0; // EOF
+     else if(bytERead == -1) return -1; // Error
+     
+     strcpy(buffer + bytesRead, character);
+     bytesRead++;
+     if(!strcmp(character, "\n")){
+       *(buffer + bytesRead - 1) = '\0';
+       return bytesRead - 1; // Subtract '\0' 
+     }
+   }
+   return -2; // To indicate that the buffer was too large
+}

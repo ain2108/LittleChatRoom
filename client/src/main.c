@@ -11,8 +11,6 @@ int main(int argc, char ** argv){
 
   // Open a socket connection  
   int sock = open_connection(argv[1], argv[2]);
-  FILE * sockf_read = fdopen(sock, "r");
-  FILE * sockf_write = fdopen(sock, "w");
 
   // READ/WRITE buffers on the heap.
   char * read_buffer = (char *) malloc(sizeof(char) * READ_BUFFER_SIZE);
@@ -21,7 +19,7 @@ int main(int argc, char ** argv){
   memset(write_buffer, 0, WRITE_BUFFER_SIZE);
 
   // Attempt login, if successful enter the loop.
-  if( login(sockf_read, sockf_write, read_buffer, write_buffer) ){
+  if( login(sock, read_buffer, write_buffer) ){
 
     // Will fork here to separate the reader process from command input
     int pid_reader;
@@ -30,18 +28,17 @@ int main(int argc, char ** argv){
     }
 
     /**********************READER PROCESS******************************/
-    if(pid_reader != 0){
+    if(pid_reader == 0){
       
-      // Read a line, print it to stdout. Repeat until EOF (socket closes)
-      while(readLine(sockf_read, read_buffer, READ_BUFFER_SIZE - 1)){
-	fprintf(stdout, "%s\n", read_buffer);
+      // Read a line, print it to stdout. Repeat until EOF (socket closes
+      while(sreadLine(sock, read_buffer, READ_BUFFER_SIZE - 1)){
+        fprintf(stderr,"Server: ");
+	fprintf(stderr, "%s\n", read_buffer);
       }
       
       // Cleaning up
       free(read_buffer);
       free(write_buffer);
-      fclose(sockf_read);
-      fclose(sockf_write);
       return 0;
     }
     /*********************READER PROCESS ENDS**************************/
@@ -49,20 +46,21 @@ int main(int argc, char ** argv){
     /**********************CONTROLLER PROCESS*************************/
 
     // Read a line from stdin
-    int charToWrite = readLine(stdin, write_buffer, WRITE_BUFFER_SIZE - 1);
-    while(charToWrite == fwrite(write_buffer, 1,
-				strlen(write_buffer), sockf_write)){
-     
-      fprintf(sockf_write, "\r\n"); // Complete transmission
-      // Read in another line
-      charToWrite = readLine(stdin, write_buffer, WRITE_BUFFER_SIZE - 1);
+    size_t size = WRITE_BUFFER_SIZE - 1;
+    fprintf(stdout,"Command: "); 
+    getline(&write_buffer, &size, stdin);
+    while(1){
+      send(sock, write_buffer, strlen(write_buffer), 0);
+      send(sock, "\n", 1, 0); // Complete transmission
+      memset(write_buffer, 0, WRITE_BUFFER_SIZE);
+      fprintf(stdout,"Command: ");
+      getline(&write_buffer, &size, stdin);
     }
 
     // Cleaning up
     free(read_buffer);
     free(write_buffer);
-    fclose(sockf_read);
-    fclose(sockf_write);
+
     return 0;
     /********************CONTROLLER PROCESS ENDS**********************/
   }
@@ -70,8 +68,8 @@ int main(int argc, char ** argv){
   // Cleaning up
   free(read_buffer);
   free(write_buffer);
-  fclose(sockf_read);
-  fclose(sockf_write);
+
+  close(sock);
   return 0;
 }
 

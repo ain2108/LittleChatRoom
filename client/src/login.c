@@ -1,7 +1,7 @@
 #include "login.h"
 
 // This function sends login information through the socket
-int send_login(FILE * socket){
+int send_login(int socket){
 
   // Getting the username
   printf("Username: ");
@@ -15,12 +15,12 @@ int send_login(FILE * socket){
   password = getpass("Password: ");
   
    printf("Your password: %s, length: %d\nUsername length: %d",
-   	 password, strlen(password), strlen(username));
+	  password,(int) strlen(password), (int)strlen(username));
 
   // Producing a hash
   unsigned char hash_bin[SHA_DIGEST_LENGTH];
   SHA1((const unsigned char *)password, strlen(password), hash_bin);
-  // free(password);
+
   // Convert hash to hex
   char hash[40]; 
   int i;
@@ -29,12 +29,10 @@ int send_login(FILE * socket){
   }
 
   // Writing to the socket
-  fwrite(username, 1 , strlen(username), socket);
-  fprintf(socket, " ");
-  fwrite(hash, 1 , sizeof(hash), socket);
-  fprintf(socket, "\r\n");
-
-  // Reading response
+  send(socket, username, strlen(username), 0);
+  send(socket, " ", 1, 0);
+  send(socket, hash, sizeof(hash), 0);
+  send(socket, "\n", 2, 0);
 
   return 1;
 }
@@ -65,20 +63,24 @@ int open_connection(char * servIP, char * servPort){
 }
 
 // Attempts to login the user
-int login(FILE * sockf_read, FILE * sockf_write,
-	  char * read_buffer, char * write_buffer){
+int login(int socket, char * read_buffer, char * write_buffer){
+
+  memset(read_buffer, 0, READ_BUFFER_SIZE);
+  memset(write_buffer, 0, WRITE_BUFFER_SIZE);
 
   /* The loop will be sending login information until a succesful login
      or until the server closes the connection */
   while(1){
-    send_login(sockf_write);
-    int charRead = readLine(sockf_read, read_buffer, READ_BUFFER_SIZE - 1);
-
-    if(charRead < 1){
+    send_login(socket);
+    int charRead = sreadLine(socket, read_buffer, READ_BUFFER_SIZE - 1);
+    fprintf(stderr, "Server answered: %s\n Length: %d\n", 
+	    read_buffer, (int) strlen(read_buffer));
+    if(charRead == 0){
       fprintf(stdout, "Connection closed by the server.\n");
       return 0; // Connection closed by server
     }else{
-      if(!strcmp(read_buffer, "OK")){
+      if(strstr(read_buffer, "OK") != NULL){
+	fprintf(stdout, "SUCCESS!\n");
 	 return 1; // Succesful login
       }else{
 	fprintf(stdout, "Wrong username or password. Try again.\n");

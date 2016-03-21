@@ -24,3 +24,26 @@ for(i = 0; i < N_USERS; i++){
  }
 }
 
+// Reads a line into a buffer from socket. NULL terminates it.
+int sreadLine(int socket, char * buffer, size_t buffSize){
+
+   memset(buffer, 0, READ_BUFFER_SIZE);
+ 
+   int bytesRead = 0;
+   int bytERead = 0;
+   while(bytesRead < buffSize){
+
+     if( (bytERead = recv(socket, buffer, 1, 0)) == 0) return 0; // EOF
+     else if(bytERead == -1) return -1; // Error
+     
+     if( (*buffer) == '\n'){
+       buffer[bytesRead] = '\0';
+       return bytesRead + 1;  
+     }
+     buffer++;
+     bytesRead++;
+   }
+   return -2; // To indicate that the buffer was too large
+}
+
+

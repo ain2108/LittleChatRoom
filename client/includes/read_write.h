@@ -6,6 +6,7 @@
 void f_continous_reading(FILE * from, FILE * to);
 void s_continous_reading(int from, int to);
 int readLine(FILE * sockf, char * buffer, size_t buffSize);
+int sreadLine(int socket, char * buffer, size_t buffSize);
 
 #endif
 

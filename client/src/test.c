@@ -2,8 +2,8 @@
 
 int main1(){
 
-  FILE * testf = fopen("test.txt", "w");
-  send_login(testf);
+  //FILE * testf = fopen("test.txt", "w");
+  //send_login(testf);
 
   return 0;
 }
