@@ -33,6 +33,7 @@ int main(int argc, char ** argv){
   // Initialize the database by loading usrs and pass from file
   initialize_database(USERS_FILE_NAME, DATABASE_NAME, db);
   create_FIFOs(db);
+  free(db); 
 
   // Need to initialize the databse of IP adresses
   FILE * ip_db = fopen(IP_BAN_DB_NAME, "wb");

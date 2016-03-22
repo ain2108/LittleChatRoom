@@ -5,5 +5,8 @@
 
 void handle_client(int sock, char * ip_address);
 void send_to_client(int sock, char * message);
+int read_line_from_pipe(char * owner, char * buffer, size_t buffSize);
+void send_to_receivers_pipe(char * receiver, char * message);
+int socket_was_closed(int socket);
 
 #endif
