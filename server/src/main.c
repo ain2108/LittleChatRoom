@@ -23,17 +23,12 @@ int main(int argc, char ** argv){
   
   // Initialize database
   fprintf(stderr, "Start.\n");
-  UsersDB * db = (UsersDB *) malloc(sizeof(UsersDBRec) * N_USERS);
-   if(db == NULL){
-     die_verbosely("malloc() failed");
-     exit(1);
-   }
-  memset(db, 0, sizeof(UsersDB));
+  UsersDB db;
+  memset(&db, 0, sizeof(UsersDB));
   
   // Initialize the database by loading usrs and pass from file
-  initialize_database(USERS_FILE_NAME, DATABASE_NAME, db);
-  create_FIFOs(db);
-  free(db); 
+  initialize_database(USERS_FILE_NAME, DATABASE_NAME, &db);
+  create_FIFOs(&db);
 
   // Need to initialize the databse of IP adresses
   FILE * ip_db = fopen(IP_BAN_DB_NAME, "wb");
