@@ -37,7 +37,7 @@ int find_position_in_IPDB(IP_DBRec * ip_array, char * ip_address){
 
 void update_IPRec_in_dbfile(IP_DBRec * record, int offset){
 
-  FILE * ip_db = fopen(IP_BAN_DB_NAME, "wb");
+  FILE * ip_db = fopen(IP_BAN_DB_NAME, "r+b"); //change from wb
   fseek(ip_db, offset, SEEK_SET);
   fwrite(record, sizeof(IP_DBRec), 1, ip_db);
    fclose(ip_db);
@@ -181,7 +181,7 @@ void read_UDBRec_from_file(UsersDBRec * record, int offset){
 
 // Write a UsersDBRec from databs
 void write_UDBRec_from_file(UsersDBRec * record, int offset){
-  FILE * users_db = fopen(DATABASE_NAME, "wb");
+  FILE * users_db = fopen(DATABASE_NAME, "r+b");
   fseek(users_db, offset, SEEK_SET);
   fwrite(record, sizeof(UsersDBRec), 1, users_db);
   fclose(users_db);

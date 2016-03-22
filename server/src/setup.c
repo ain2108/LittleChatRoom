@@ -35,32 +35,31 @@ void initialize_database(char * source_file_name, char * db_name, UsersDB * db){
   // Declarations
   FILE * source = fopen(source_file_name, "r");
   FILE * db_file = fopen(db_name, "wb");
-  char line[PASS_USRN_LENGTH];
+  char * line;
   char * word;
-  memset(line, 0, PASS_USRN_LENGTH);
-  int charRead = 0;
   
-  // Loop to populate the *db
+   // Loop to populate the *db
   int i = 0;
+  size_t size = PASS_USRN_LENGTH - 1;
   for(i = 0; i < N_USERS; i++){
-    charRead = readLine(source, line, PASS_USRN_LENGTH - 1);
-    if(charRead < 1) break; // If less users are provided than expected
-
+    if(getline(&line, &size, source) == -1) break;
+    
     // Filling the Rec
-    word = strtok(line, " ");   
+    word = strtok(line, " ");
+    if(word == NULL) break;
     db->records[i].user_id = i + 1;
     strcpy(db->records[i].login, word); // Weak code.
-    word = strtok(NULL, "\0");
+    word = strtok(NULL, "\n");
     strcpy(db->records[i].password, word); // Weak code.
 
-    memset(line, 0, PASS_USRN_LENGTH);
   }
 
-  // read_usersDB(db, stderr);
+
 
   // Write the entries into the db file
   fwrite(db, N_USERS, sizeof(UsersDBRec), db_file);
 
+  // Clean up
   fclose(db_file);
   fclose(source);
 }
