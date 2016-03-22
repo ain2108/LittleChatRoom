@@ -47,15 +47,16 @@ void initialize_database(char * source_file_name, char * db_name, UsersDB * db){
     // Filling the Rec
     word = strtok(line, " ");
     if(word == NULL) break;
-    db->records[i].user_id = i + 1;
-    strcpy(db->records[i].login, word); // Weak code.
+    db->records[i].user_id = i + 1; // ID
+    strcpy(db->records[i].login, word); // login
     word = strtok(NULL, "\n");
-    strcpy(db->records[i].password, word); // Weak code.
+    strcpy(db->records[i].password, word); // password
 
+    // Creating an appropriate name for the pipe
+    strcpy(db->records[i].pipe_name, PIPE_DIRECTORY);
+    strcat(db->records[i].pipe_name, db->records[i].login);
+    strcat(db->records[i].pipe_name, PIPE_NAME_POSTFIX);
   }
-
-
-
   // Write the entries into the db file
   fwrite(db, N_USERS, sizeof(UsersDBRec), db_file);
 
@@ -63,3 +64,12 @@ void initialize_database(char * source_file_name, char * db_name, UsersDB * db){
   fclose(db_file);
   fclose(source);
 }
+
+// Creates all FIFOs
+void create_FIFOs(UsersDB * users_db){
+    int i = 0;
+    for(i = 0; i < N_USERS; i++){
+      mkfifo(users_db->records[i].pipe_name, 0666); 
+    }
+}
+

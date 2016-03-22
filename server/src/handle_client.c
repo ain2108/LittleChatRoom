@@ -20,14 +20,14 @@ void handle_client(int sock, char * ip_address){
   fillin_UsersDBRec(&users_rec, ip_address);
   write_UDBRec_from_file(&users_rec, offset);
 
-  /*
+  
   // Quickly check if everything is working as wanted
+  UsersDB users_db;
   FILE * users_db_file1 = fopen(DATABASE_NAME, "rb");
   load_db_from_file(users_db_file1, &users_db);
   read_usersDB(&users_db, stderr);
   fclose(users_db_file1);  
   // Ready to deal with the service
-  */
   
   // Echo
   fprintf(stderr, "serving %s\n", users_rec.login);

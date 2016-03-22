@@ -19,14 +19,15 @@ int i = 0;
 for(i = 0; i < N_USERS; i++){
   fprintf(stream, "ID: %d Username: %s Password: %s\n"
 	  "Logged in: %d Last login: %lu Last logout: %lu\n"
-	  "IP: %s\n========\n",
+	  "IP: %s pipe: %s\n========\n",
 	  db->records[i].user_id,
 	  db->records[i].login,
 	  db->records[i].password,
 	  db->records[i].logged_in,
 	  db->records[i].last_login_time,
 	  db->records[i].last_logout_time,
-	  db->records[i].ip);
+	  db->records[i].ip,
+          db->records[i].pipe_name);
  }
 }
 

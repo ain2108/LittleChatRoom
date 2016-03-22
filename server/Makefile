@@ -10,7 +10,9 @@ TARGET=Server
 
 all: $(TARGET)
 	mkdir -p object_files
+	mkdir -p tmp
 	mv *.o object_files
+	rm -f tmp/*.pipe
 
 $(TARGET): $(OBJECTS)
 	$(CC) -o $@ $(TEMP) $(LDFLAGS)
@@ -22,4 +24,5 @@ $(TARGET): $(OBJECTS)
 	$(CC) $(CCFLAGS) -c $<
 
 clean:
+	rm -f tmp/*.pipe
 	rm -f object_files/*.o $(TARGET)
