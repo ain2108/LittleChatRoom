@@ -22,13 +22,11 @@ int main(int argc, char ** argv){
   pid_t pid_handler;
   
   // Initialize database
-  fprintf(stderr, "Starting...\n");
+  fprintf(stderr, "Start.\n");
   UsersDB * db = (UsersDB *) malloc(sizeof(UsersDBRec) * N_USERS);
   memset(db, 0, sizeof(UsersDB));
   initialize_database(USERS_FILE_NAME, DATABASE_NAME, db);
-  fprintf(stderr, "Database initialized:\n");
-  // read_usersDB(db, stderr);
-
+  
   // Need to initialize the databse of IP adresses
   FILE * ip_db = fopen(IP_BAN_DB_NAME, "wb");
   fclose(ip_db);

@@ -2,15 +2,14 @@
 #include "database_interactions.h"
 
 void handle_client(int sock, char * ip_address){
-
-  fprintf(stderr, "\n==============================================\n");
   
   // Authenticate the user
   int position;
-  if((position = authenticate(sock, ip_address)) == -1)
+  if((position = authenticate(sock, ip_address)) == -1){
     return;
-  fprintf(stderr, "%s passed authentication\n", ip_address);
+  }
 
+  fprintf(stderr, "%s passed authentication\n", ip_address);
   // Notify the user of success
   send_to_client(sock, "OK\n");
 
@@ -31,18 +30,18 @@ void handle_client(int sock, char * ip_address){
   */
   
   // Echo
-  fprintf(stderr, "Echo service ready to start\n");
+  fprintf(stderr, "serving %s\n", users_rec.login);
   int charsRead = 0;
   char * line = (char *) malloc(sizeof(char) * READ_BUFFER_SIZE);
   memset(line, 0, READ_BUFFER_SIZE);
   while((charsRead = sreadLine(sock, line, READ_BUFFER_SIZE - 1)) > 0){
-    fprintf(stderr, "Client sent: %s\n", line);
+    fprintf(stderr, "%s sent: %s\n", users_rec.login, line);
     send(sock, line, strlen(line), 0);
     send(sock, "\n", 1, 0);
     memset(line, 0, READ_BUFFER_SIZE);
   }
 
-  fprintf(stderr, "Closing connection\n");
+  fprintf(stderr, "closing connection with %s\n", ip_address);
   close(sock);
   return;
 }

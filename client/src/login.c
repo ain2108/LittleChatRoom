@@ -15,9 +15,6 @@ int send_login(int socket){
   // Getting the password
   char * password;
   password = getpass("Password: ");
-  
-   printf("Your password: %s, length: %d\nUsername length: %d",
-	  password,(int) strlen(password), (int)strlen(username));
 
   // Producing a hash
   unsigned char hash_bin[SHA_DIGEST_LENGTH];
@@ -75,14 +72,14 @@ int login(int socket, char * read_buffer, char * write_buffer){
   while(1){
     send_login(socket);
     int charRead = sreadLine(socket, read_buffer, READ_BUFFER_SIZE - 1);
-    fprintf(stderr, "Server answered: %s\n Length: %d\n", 
-	    read_buffer, (int) strlen(read_buffer));
+    
+    // Interpret response from the server
     if(charRead == 0){
       fprintf(stdout, "Connection closed by the server.\n");
       return 0; // Connection closed by server
     }else{
       if(strstr(read_buffer, "OK") != NULL){
-	fprintf(stdout, "SUCCESS!\n");
+	fprintf(stdout, "Login succesful.\n");
 	 return 1; // Succesful login
       }else{
 	fprintf(stdout, "Wrong username or password. Try again.\n");

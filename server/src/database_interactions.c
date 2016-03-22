@@ -48,19 +48,25 @@ void update_IPRec_in_dbfile(IP_DBRec * record, int offset){
 int check_validity(int socket, UsersDB * db){
 
   // Some buffers
-  char line[1024];
-  char password[1024];
-  char username[1024];
-  memset(line, 0, 1024);
-  memset(password, 0, 1024);
-  memset(username, 0, 1024);
-  char * word;
+  char line[READ_BUFFER_SIZE];
+  char password[PASSWORD_LIMIT];
+  char username[USERNAME_LIMIT];
+  memset(line, 0, READ_BUFFER_SIZE);
+  memset(password, 0, PASSWORD_LIMIT);
+  memset(username, 0, USERNAME_LIMIT);
+  char * word = NULL;
   
   // Need to extract username and password from the line
   sreadLine(socket, line, PASS_USRN_LENGTH - 1);
+  
+  // Extracting username
   word = strtok(line, " ");
+  if(word == NULL) return -1;
   strcpy(username, word);
+
+  // Extracting password
   word = strtok(NULL, "\0");
+  if(word == NULL) return -1;
   strcpy(password, word);
    
   // Check if match occurs
@@ -99,7 +105,7 @@ int authenticate(int sock, char * ip_address){
   time_t time_sec;
   time(&time_sec);
 
-  fprintf(stderr, "Connection attempted by %s\n", ip_address);
+  fprintf(stderr, "%s attempts connection\n", ip_address);
   
   // Assume IP_BAN_DB was created before.
   // Check the ip against database of IP adresses.
@@ -112,28 +118,26 @@ int authenticate(int sock, char * ip_address){
   // If ip not found in db, create a new record, write it to db.
   if((position = find_position_in_IPDB(ip_db_array, ip_address)) == -1){
     create_IP_DBRec(ip_address);
-    fprintf(stderr, "IP records created and recorded\n");
     load_ip_db( (char *) ip_db_array);
     position = find_position_in_IPDB(ip_db_array, ip_address);
   }
 
   int offset = position * sizeof(IP_DBRec);
-  fprintf(stderr, "IP: %s, position in DB: %d\n", ip_address, position);
-  fprintf(stderr, "Time: %d Last banned at: %lu\n",
-	  (int) time_sec, ip_db_array[position].ban_time);
+  // fprintf(stderr, "IP: %s, position in DB: %d\n", ip_address, position);
+  // fprintf(stderr, "Time: %d Last banned at: %lu\n",
+  //  (int) time_sec, ip_db_array[position].ban_time);
   // Check if user is still banned.
   time(&time_sec);
   if((time_sec - ip_db_array[position].ban_time) < BLOCK_TIME){
-    fprintf(stdout, "Connection attempted by %s. Still banned\n",
+    fprintf(stdout, "%s attempts connection. Still banned\n",
 	    ip_address);
     free(ip_db_array);
     close(sock);
-    return 0;
+    return -1;
   }
   // Reset ban time
   ip_db_array[position].ban_time = 0;
-  fprintf(stderr, "ban_time was reset normally\n");
-
+  
   // Load the database of passwords and usernames
   UsersDB * db = (UsersDB *) malloc(sizeof(UsersDBRec) * N_USERS);
   memset(db, 0, sizeof(UsersDB));
@@ -153,7 +157,7 @@ int authenticate(int sock, char * ip_address){
   }
   time(&time_sec);
   ip_db_array[position].ban_time = time_sec;
-  fprintf(stderr, "IP: %s, Banned at %lu", 
+  fprintf(stderr, "%s banned at %lu\n", 
 	  ip_address, ip_db_array[position].ban_time);
   update_IPRec_in_dbfile(ip_db_array + position, offset);
   close(sock);
