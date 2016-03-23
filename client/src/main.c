@@ -36,7 +36,7 @@ int main(int argc, char ** argv){
  
       // Read a line, print it to stdout. Repeat until EOF (socket closes
       while(sreadLine(sock, read_buffer, READ_BUFFER_SIZE - 1)){
-	fprintf(stderr, "%s\n", read_buffer);
+	fprintf(stderr, "%s\n> ", read_buffer);
       }
       
       // Cleaning up
@@ -51,9 +51,11 @@ int main(int argc, char ** argv){
     // Read a line from stdin
     size_t size = WRITE_BUFFER_SIZE - 1;
     memset(write_buffer, 0, WRITE_BUFFER_SIZE);
+    fprintf(stdout, "> ");
     while(getline(&write_buffer, &size, stdin) ){
       send(sock, write_buffer, strlen(write_buffer), 0);
       memset(write_buffer, 0, WRITE_BUFFER_SIZE);
+      fprintf(stdout, "> ");
     }
 
     // Cleaning up

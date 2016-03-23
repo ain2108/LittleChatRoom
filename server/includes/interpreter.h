@@ -9,12 +9,10 @@
 
 #include "helpers.h"
 
-void interpret(int socket, char * read_line, UsersDBRec * users_rec);
+int interpret(int socket, char * read_line, UsersDBRec * users_rec);
 void perform_WHO(int socket, UsersDB * db);
 void perform_LAST();
-void perform_BROADCAST();
+void perform_BROADCAST(char * message, UsersDBRec * users_rec, UsersDB * db);
 void perform_SEND();
-void perform_LOGOUT();
-
 
 #endif

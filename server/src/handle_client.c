@@ -11,25 +11,22 @@ void handle_client(int sock, char * ip_address){
   }
 
   fprintf(stderr, "%s passed authentication\n", ip_address);
-  // Notify the user of success
-  send_to_client(sock, "OK\n");
 
-  // Acquire position of username in UsersDB
+  // Check if the user is already online
   int offset = position * sizeof(UsersDBRec);
   UsersDBRec users_rec;
   read_UDBRec_from_file(&users_rec, offset);
+  if(users_rec.logged_in == 1){
+    fprintf(stderr, "%s already online\n", users_rec.login);
+    fprintf(stderr, "closing connection with %s\n", ip_address);
+    close(sock);
+    return;
+  }
+
+  // Notify the user of success
+  send_to_client(sock, "OK\n");
   fillin_UsersDBRec(&users_rec, ip_address);
   write_UDBRec_from_file(&users_rec, offset);
-
-  /*
-  // Quickly check if everything is working as wanted
-  UsersDB users_db;
-  FILE * users_db_file1 = fopen(DATABASE_NAME, "rb");
-  load_db_from_file(users_db_file1, &users_db);
-  read_usersDB(&users_db, stderr);
-  fclose(users_db_file1);  
-  // Ready to deal with the service
-  */
 
   // We need a process that continously reads from owner's pipe.
   pid_t pid_reader;
@@ -40,6 +37,9 @@ void handle_client(int sock, char * ip_address){
 
   /************************ READER PROCESS ****************************/
   if(pid_reader == 0){
+    // Child asks the kernel to kill it if parent dies 
+    prctl(PR_SET_PDEATHSIG, SIGKILL);
+
     char pipe_line[READ_BUFFER_SIZE];
     memset(pipe_line, 0, READ_BUFFER_SIZE);
 
@@ -52,9 +52,6 @@ void handle_client(int sock, char * ip_address){
       send_to_client(sock, "\n");
       memset(pipe_line, 0, READ_BUFFER_SIZE);
     }
-
-    // fprintf(stderr, "%s's reader process exits\n", users_rec.login);
-    // close(sock);
     exit(0);
   }
   /*********************** READER PROCESS ENDS*************************/
@@ -62,20 +59,76 @@ void handle_client(int sock, char * ip_address){
 
   /********************* CONTROLLER PROCCESS **************************/
   fprintf(stderr, "serving %s\n", users_rec.login);
+  // Some necessary decalarations
   int charsRead = 0;
   char line[READ_BUFFER_SIZE];
   memset(line, 0, READ_BUFFER_SIZE);
+  pid_t pid_bomb = 0;
+
+  // Need to fetch the enviroment variable
+    // Extracting the enviroment variable
+  int TIME_OUT;
+  const char * env_var_time = getenv("TIME_OUT");
+  if(env_var_time == NULL)
+    TIME_OUT = 1800; // In case was not set, set to 30 min
+  else
+    TIME_OUT = atoi(env_var_time);
+
+  // Timer, we need to log the user out correctly 
+  if((pid_bomb = horrible_timer(TIME_OUT)) == 0){
+    // Make a record into the database before logout
+    time_t time_sec;
+    time(&time_sec);
+    users_rec.last_logout_time = time_sec;
+    users_rec.logged_in = 0;
+    write_UDBRec_from_file(&users_rec, offset);
+    fprintf(stderr, "closing connection with %s\n", ip_address);
+    close(sock);
+    return;
+  }
+    
+  // Read lines from socket in an infinite loop
   while((charsRead = sreadLine(sock, line, READ_BUFFER_SIZE - 1)) > 0){
-    // fprintf(stderr, "%s sent: %s\n", users_rec.login, line);
-    // send_to_receivers_pipe(users_rec.login, line);
-    // send_to_receivers_pipe(users_rec.login, "\n");
-    if( (*line) == '\0') continue; // Client pressed ENTER :)
-    interpret(sock, line, &users_rec); 
+    // Kill the time bomb process
+    kill(pid_bomb, SIGKILL); 
+    
+    // If user sends '\n'
+    if((*line) == '\0'){
+      if((pid_bomb = horrible_timer(TIME_OUT)) == 0) break; 
+      continue;
+    }
+
+    // Respond to the command
+    if(interpret(sock, line, &users_rec)) break; // COMMAND_LOGOUT
+    // Clean
     memset(line, 0, READ_BUFFER_SIZE);
+    
+    // Set a new time bomb
+    if((pid_bomb = horrible_timer(TIME_OUT)) == 0) break; 
   }
 
-  fprintf(stderr, "closing connection with %s\n", ip_address);
+  // The case when client closes the connection
+  if(charsRead <= 0) kill(pid_bomb, SIGKILL);
+  
+  // Make a record into the database before logout
+  time_t time_sec;
+  time(&time_sec);
+  users_rec.last_logout_time = time_sec;
+  users_rec.logged_in = 0;
+  write_UDBRec_from_file(&users_rec, offset);
+
+  // Kill the reader process
   kill(pid_reader, SIGKILL); // kill the child
+
+  /*
+  UsersDB users_db;
+  FILE * users_db_file1 = fopen(DATABASE_NAME, "rb");
+  load_db_from_file(users_db_file1, &users_db);
+  read_usersDB(&users_db, stderr);
+  fclose(users_db_file1);  
+  */
+
+  fprintf(stderr, "closing connection with %s\n", ip_address);
   close(sock);
   return;
 }
@@ -152,5 +205,24 @@ int socket_was_closed(int socket){
     return 1;
   }
   return 0;
+}
+
+// Returns the pid of the bomb. Kill it before it kills you.
+pid_t horrible_timer(int sec){
+  
+  // We need a process that continously reads from owner's pipe.
+  pid_t pid_timebomb;
+  // Die in case fork fails
+  if((pid_timebomb = fork()) < 0){
+    return -1;  // Should not die necessarily. 
+  }
+
+  // The time bomb below
+  if(pid_timebomb == 0){
+    sleep(sec);
+    kill(getppid(), SIGKILL);
+    return 0;
+  }
+  return pid_timebomb;
 }
 

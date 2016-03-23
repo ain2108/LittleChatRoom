@@ -13,6 +13,8 @@
 #include <time.h>
 #include <signal.h>     /* for signal() */
 
+#include <sys/prctl.h>  /* for some quality time with forks */
+
 #include <fcntl.h>      /* for pipes */
 #include <sys/stat.h>
 #include <sys/types.h>
