@@ -137,6 +137,7 @@ void perform_BROADCAST(char * message, UsersDBRec * users_rec, UsersDB * db){
 
 void perform_SEND(char * receiver_message, UsersDB * db, 
 		  int socket, UsersDBRec * rec){
+  receiver_message[strlen(receiver_message)] = ' ';
   char * token = strtok(receiver_message, " ");
   if(token == NULL){
     send_to_client(socket, "server: ");
