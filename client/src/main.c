@@ -36,7 +36,7 @@ int main(int argc, char ** argv){
  
       // Read a line, print it to stdout. Repeat until EOF (socket closes
       while(sreadLine(sock, read_buffer, READ_BUFFER_SIZE - 1)){
-	fprintf(stderr, "Server: %s\n", read_buffer);
+	fprintf(stderr, "%s\n", read_buffer);
       }
       
       // Cleaning up
