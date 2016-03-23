@@ -2,6 +2,8 @@
 #include "handle_client.h"
 #include "database_interactions.h"
 
+#define I_HATE_STRINGS 66
+
 int interpret(int socket, char * read_line, UsersDBRec * users_rec){
 
   // Load UsersDB
@@ -42,10 +44,12 @@ int interpret(int socket, char * read_line, UsersDBRec * users_rec){
       send_to_client(socket, "please provide destination\n");   
       return 0;
     }
-    // If its a multicase message
+    // If its a multicast message
     if( ((*receiver_msg) == '(') && strstr(receiver_msg, ")") != NULL){
-      (*receiver_msg) = ' ';
-      perform_MULTI_SEND(receiver_msg, &users_db, socket);
+      char temp[READ_BUFFER_SIZE];
+      memset(temp, 0, READ_BUFFER_SIZE);
+      strcpy(temp, receiver_msg);
+      perform_MULTI_SEND(temp, &users_db, socket, users_rec);
       return 0;
     }
     perform_SEND(receiver_msg, &users_db, socket, users_rec);
@@ -178,10 +182,55 @@ int check_username_exits_and_online(char * login, UsersDB * db){
   return 0; // Either does not exist or offline
 }
 
-void perform_MULTI_SEND(char * receivers_message, UsersDB * db, int socket){
-  fprintf(stderr, "multisend\n");
+void perform_MULTI_SEND(char * recs_msg, UsersDB * db, 
+			int socket, UsersDBRec * rec){
+
+  char * open = strstr(recs_msg, "(");
+  char * closed = strstr(recs_msg, ")");
+
+  // Get the message
+  char message[WRITE_BUFFER_SIZE];
+  memset(message, 0, WRITE_BUFFER_SIZE);
+  strcpy(message, closed + 1);
+
+  // Get the receivers
+  char receivers[WRITE_BUFFER_SIZE];
+  memset(receivers, 0, WRITE_BUFFER_SIZE);
+  strncpy(receivers, open + 1, closed - open - 1);
+
+  // Tokenize the string and get the pointers
+  char *damn_tokens[I_HATE_STRINGS];
+  memset(damn_tokens, 0, I_HATE_STRINGS);
+  char * the_token = strtok(receivers, " ");
+  int i = 0;
+  while(the_token != NULL){
+    damn_tokens[i] = the_token;
+    the_token = strtok(NULL, " ");
+    i++;
+  }
+  
+  // Buffer to construct the message for unary send
+  char buffer[WRITE_BUFFER_SIZE];
+  memset(buffer, 0, WRITE_BUFFER_SIZE);
+  
+  int j = 0; 
+  while(j < i){
+    the_token = damn_tokens[j];
+    
+    // Construct the proper message
+    strcpy(buffer, the_token);
+    strcat(buffer, " ");
+    strcat(buffer, message);
+    strcat(buffer, "\n");
+    // Perform unary send
+    
+    perform_SEND(buffer, db, socket, rec);
+    // Clean up and increment to walk through pointers
+    memset(buffer, 0, WRITE_BUFFER_SIZE);
+    j++;
+  }
   return;
-}
+} 
 
 
 

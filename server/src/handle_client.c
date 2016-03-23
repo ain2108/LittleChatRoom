@@ -123,16 +123,8 @@ void handle_client(int sock, char * ip_address){
   // Kill the reader process
   kill(pid_reader, SIGKILL); // kill the child
 
-  /*
-  UsersDB users_db;
-  FILE * users_db_file1 = fopen(DATABASE_NAME, "rb");
-  load_db_from_file(users_db_file1, &users_db);
-  read_usersDB(&users_db, stderr);
-  fclose(users_db_file1);  
-  */
-
   fprintf(stderr, "closing connection with %s\n" 
-	  "logout at %d",
+	  "logout at %d\n",
 	  ip_address,
 	  (int) time_sec);
   close(sock);

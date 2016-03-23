@@ -1,5 +1,4 @@
 #include "setup.h"
-#include "db_operations.h"
 #include "handle_client.h"
 
 int main(int argc, char ** argv){
