@@ -72,7 +72,7 @@ void handle_client(int sock, char * ip_address){
   if(env_var_time == NULL)
     TIME_OUT = 1800; // In case was not set, set to 30 min
   else
-    TIME_OUT = atoi(env_var_time);
+    TIME_OUT = atoi(env_var_time) * 60;
 
   // Timer, we need to log the user out correctly 
   if((pid_bomb = horrible_timer(TIME_OUT)) == 0){
@@ -83,11 +83,13 @@ void handle_client(int sock, char * ip_address){
     users_rec.logged_in = 0;
     write_UDBRec_from_file(&users_rec, offset);
     fprintf(stderr, "closing connection with %s\n", ip_address);
+    
     close(sock);
     return;
   }
     
   // Read lines from socket in an infinite loop
+  read_UDBRec_from_file(&users_rec, offset);
   while((charsRead = sreadLine(sock, line, READ_BUFFER_SIZE - 1)) > 0){
     // Kill the time bomb process
     kill(pid_bomb, SIGKILL); 
@@ -111,6 +113,7 @@ void handle_client(int sock, char * ip_address){
   if(charsRead <= 0) kill(pid_bomb, SIGKILL);
   
   // Make a record into the database before logout
+  fprintf(stderr, "previous logout %lu\n", users_rec.last_logout_time);
   time_t time_sec;
   time(&time_sec);
   users_rec.last_logout_time = time_sec;
@@ -128,7 +131,10 @@ void handle_client(int sock, char * ip_address){
   fclose(users_db_file1);  
   */
 
-  fprintf(stderr, "closing connection with %s\n", ip_address);
+  fprintf(stderr, "closing connection with %s\n" 
+	  "logout at %d",
+	  ip_address,
+	  (int) time_sec);
   close(sock);
   return;
 }

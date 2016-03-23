@@ -20,6 +20,14 @@ int interpret(int socket, char * read_line, UsersDBRec * users_rec){
     return 0;
 
   }else if(!strcmp(token, COMMAND_LAST)){
+    token = strtok(NULL, "\0");
+    if(token == NULL) return 0;
+    int min;
+    if((min = atoi(token)) == 0){
+      send_to_client(socket, "server: bad format\n");
+      return 0;
+    }
+    perform_LAST(socket, min, &users_db);
     return 0;
   }else if(!strcmp(token, COMMAND_BROADCAST)){
     token = strtok(NULL, "\0");
@@ -38,6 +46,7 @@ int interpret(int socket, char * read_line, UsersDBRec * users_rec){
 }
 
 void perform_WHO(int socket, UsersDB * db){
+  // Buffer
   char write_line[WRITE_BUFFER_SIZE];
   memset(write_line, 0, WRITE_BUFFER_SIZE);
   int i;
@@ -53,7 +62,35 @@ void perform_WHO(int socket, UsersDB * db){
   return;
 }
 
-void perform_LAST(){
+void perform_LAST(int socket, int min, UsersDB * db){
+  // Buffer
+  char write_line[WRITE_BUFFER_SIZE];
+  memset(write_line, 0, WRITE_BUFFER_SIZE);
+  int seconds = min * 60; // 60 seconds in minute
+  int i;
+  strcpy(write_line, "server: "); 
+
+  // Current time
+  time_t time_sec;
+  time(&time_sec);
+
+  // Iterate over the database
+  for(i = 0; i < N_USERS; i++){
+    // The case of first login by the user
+    if(db->records[i].logged_in == 1){
+      strcat(write_line, db->records[i].login);
+      strcat(write_line, " ");
+      continue;
+    }
+    if((time_sec - db->records[i].last_logout_time) < seconds){
+      strcat(write_line, db->records[i].login);
+      strcat(write_line, " ");
+    }
+  }
+  
+  strcat(write_line, "\n");
+  send_to_client(socket, write_line);
+  return;
 
 }
 

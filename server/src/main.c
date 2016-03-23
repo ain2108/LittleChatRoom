@@ -11,7 +11,12 @@ int main(int argc, char ** argv){
   }
 
   // Server socket initiation
-  unsigned short port = atoi(argv[1]); //need to make sure port numbers is right.
+  unsigned short port;
+  if( (port = atoi(argv[1])) == 0){
+    fprintf(stderr, "Usage: %s <port>\n", argv[0]);
+    fprintf(stderr, "Usage: <port> is an int from 0 to 65536\n");
+    exit(1);
+  }
   // Already listening on the socket
   int listenSock = setup_server_socket(port);
 

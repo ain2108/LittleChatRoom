@@ -101,6 +101,7 @@ int authenticate(int sock, char * ip_address){
     BLOCK_TIME = 60; // In case was not set
   else
     BLOCK_TIME = atoi(env_var);
+
   
   time_t time_sec;
   time(&time_sec);
@@ -123,9 +124,7 @@ int authenticate(int sock, char * ip_address){
   }
 
   int offset = position * sizeof(IP_DBRec);
-  // fprintf(stderr, "IP: %s, position in DB: %d\n", ip_address, position);
-  // fprintf(stderr, "Time: %d Last banned at: %lu\n",
-  //  (int) time_sec, ip_db_array[position].ban_time);
+
   // Check if user is still banned.
   time(&time_sec);
   if((time_sec - ip_db_array[position].ban_time) < BLOCK_TIME){
@@ -144,17 +143,22 @@ int authenticate(int sock, char * ip_address){
   FILE * db_file = fopen(DATABASE_NAME, "rb");
   fread(db, sizeof(UsersDBRec), N_USERS, db_file);
 
+
   // Attempt validation of user. Check for number of tries. 
   int attempts = 0;
   int position_in_users_db;
+
+  // Give the user few attempts
   while(attempts < MAX_FAILS){
     if((position_in_users_db = check_validity(sock, db)) == -1){
-      send(sock, "NO\n", 3, 0);
+      send(sock, "NO\n", 3, 0);     
       attempts++; 
     }else{
       return position_in_users_db;
     }
   }
+  
+  // Ban user's ip adress
   time(&time_sec);
   ip_db_array[position].ban_time = time_sec;
   fprintf(stderr, "%s banned at %lu\n", 
@@ -162,7 +166,6 @@ int authenticate(int sock, char * ip_address){
   update_IPRec_in_dbfile(ip_db_array + position, offset);
   close(sock);
   return -1;
-
 }
 
 /***********************************************************/
@@ -192,6 +195,7 @@ void write_UDBRec_from_file(UsersDBRec * record, int offset){
   return;
 }
 
+// Fills the user record with time data and ip
 void fillin_UsersDBRec(UsersDBRec * record, char * ip_address){
 
   time_t time_sec;
@@ -199,7 +203,6 @@ void fillin_UsersDBRec(UsersDBRec * record, char * ip_address){
   record->logged_in = 1;
   record->last_login_time = time_sec;
   strcpy(record->ip, ip_address);
-  record->last_logout_time = 0;
   return;
 }
 
