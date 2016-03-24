@@ -5,6 +5,10 @@ ain2108
 
 Code Description:
 
+First of all, my code does have some bugs. 
+But most of them are fixed if the client logs out and logs back in.
+The reading from pipes sometimes gets a little weird. 
+
 Entirety of the code is written in C. It wasn't that bad of an idea, 
 but writing the interpreter was a real pain. 
 In terms of design, client is a brain dead program. It estabilishes a connection to 

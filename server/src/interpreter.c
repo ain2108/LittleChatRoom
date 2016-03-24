@@ -219,7 +219,6 @@ void perform_MULTI_SEND(char * recs_msg, UsersDB * db,
     
     // Construct the proper message
     strcpy(buffer, the_token);
-    strcat(buffer, " ");
     strcat(buffer, message);
     strcat(buffer, "\n");
     // Perform unary send
